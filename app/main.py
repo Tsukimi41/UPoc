@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import colorsys
+import logging
 import os
 import random
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -22,7 +24,15 @@ GRID_WIDTH = 40
 GRID_HEIGHT = 25
 TOTAL_PIXELS = GRID_WIDTH * GRID_HEIGHT
 DEFAULT_EVENT_ID = "default"
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "*").split(",")
+    if origin.strip()
+]
+logger = logging.getLogger("cap_art")
 
 COLOR_LABELS = {
     "red": "赤",
@@ -126,6 +136,9 @@ class ConnectionManager:
                 await websocket.send_json(message)
             except WebSocketDisconnect:
                 self.disconnect(websocket)
+            except Exception:
+                logger.exception("WebSocket broadcast failed")
+                self.disconnect(websocket)
 
 
 manager = ConnectionManager()
@@ -134,42 +147,46 @@ app = FastAPI(title="Cap Art MVP", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db()
-    db = SessionLocal()
     try:
-        seed_defaults(db)
-    finally:
-        db.close()
+        init_db()
+        db = SessionLocal()
+        try:
+            seed_defaults(db)
+        finally:
+            db.close()
+    except Exception:
+        logger.exception("Application startup failed")
+        raise
 
 
 @app.get("/")
 async def root() -> FileResponse:
-    return FileResponse("static/index.html")
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/live")
 async def live_page() -> FileResponse:
-    return FileResponse("static/live.html")
+    return FileResponse(STATIC_DIR / "live.html")
 
 
 @app.get("/checkin")
 async def checkin_page() -> FileResponse:
-    return FileResponse("static/checkin.html")
+    return FileResponse(STATIC_DIR / "checkin.html")
 
 
 @app.get("/rewards")
 async def rewards_page() -> FileResponse:
-    return FileResponse("static/rewards.html")
+    return FileResponse(STATIC_DIR / "rewards.html")
 
 
 def normalize_hex(value: str) -> str:
@@ -421,28 +438,33 @@ def subscription_to_dict(subscription: NotificationSubscription) -> Dict[str, An
 
 
 def seed_defaults(db: Session) -> None:
-    event = db.query(Event).filter(Event.id == DEFAULT_EVENT_ID).first()
-    if not event:
-        event = Event(
-            id=DEFAULT_EVENT_ID,
-            title="UPoc 2026",
-            status="active",
-            total_pixels=TOTAL_PIXELS,
-            started_at=datetime.now(timezone.utc),
-        )
-        db.add(event)
-    if db.query(Theme).count() == 0:
-        for theme in THEME_POOL:
-            db.add(
-                Theme(
-                    id=theme["id"],
-                    title=theme["title"],
-                    description=theme["description"],
-                    votes=theme["votes"],
-                    is_active=True,
-                )
+    try:
+        event = db.query(Event).filter(Event.id == DEFAULT_EVENT_ID).first()
+        if not event:
+            event = Event(
+                id=DEFAULT_EVENT_ID,
+                title="UPoc 2026",
+                status="active",
+                total_pixels=TOTAL_PIXELS,
+                started_at=datetime.now(timezone.utc),
             )
-    db.commit()
+            db.add(event)
+        if db.query(Theme).count() == 0:
+            for theme in THEME_POOL:
+                db.add(
+                    Theme(
+                        id=theme["id"],
+                        title=theme["title"],
+                        description=theme["description"],
+                        votes=theme["votes"],
+                        is_active=True,
+                    )
+                )
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to seed default records")
+        raise
 
 
 def get_event(db: Session) -> Optional[Event]:
@@ -450,25 +472,41 @@ def get_event(db: Session) -> Optional[Event]:
 
 
 def build_state_snapshot(db: Session) -> Dict[str, Any]:
-    caps = db.query(Cap).order_by(Cap.index).all()
-    cap_items = [cap_to_dict(cap) for cap in caps]
-    progress = len(cap_items)
-    color_stats = build_color_stats(cap_items)
-    themes = db.query(Theme).order_by(Theme.id).all()
-    event = get_event(db)
-    return {
-        "caps": cap_items,
-        "progress": progress,
-        "total": TOTAL_PIXELS,
-        "remaining": TOTAL_PIXELS - progress,
-        "width": GRID_WIDTH,
-        "height": GRID_HEIGHT,
-        "colorStats": color_stats,
-        "leaderboard": build_leaderboard(db),
-        "themes": [theme_to_dict(theme) for theme in themes],
-        "suggestions": suggest_theme(color_stats),
-        "event": event_to_dict(event) if event else None,
-    }
+    try:
+        caps = db.query(Cap).order_by(Cap.index).all()
+        cap_items = [cap_to_dict(cap) for cap in caps]
+        progress = len(cap_items)
+        color_stats = build_color_stats(cap_items)
+        themes = db.query(Theme).order_by(Theme.id).all()
+        event = get_event(db)
+        return {
+            "caps": cap_items,
+            "progress": progress,
+            "total": TOTAL_PIXELS,
+            "remaining": TOTAL_PIXELS - progress,
+            "width": GRID_WIDTH,
+            "height": GRID_HEIGHT,
+            "colorStats": color_stats,
+            "leaderboard": build_leaderboard(db),
+            "themes": [theme_to_dict(theme) for theme in themes],
+            "suggestions": suggest_theme(color_stats),
+            "event": event_to_dict(event) if event else None,
+        }
+    except Exception:
+        logger.exception("Failed to build state snapshot")
+        return {
+            "caps": [],
+            "progress": 0,
+            "total": TOTAL_PIXELS,
+            "remaining": TOTAL_PIXELS,
+            "width": GRID_WIDTH,
+            "height": GRID_HEIGHT,
+            "colorStats": [],
+            "leaderboard": [],
+            "themes": [theme.copy() for theme in THEME_POOL],
+            "suggestions": suggest_theme([]),
+            "event": None,
+        }
 
 
 def require_admin(x_admin_token: Optional[str] = Header(default=None)) -> None:
@@ -485,6 +523,8 @@ def get_state(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 @app.get("/api/caps/{cap_index}")
 def get_cap(cap_index: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    if cap_index < 1:
+        raise HTTPException(status_code=400, detail="cap_index must be greater than 0")
     cap = db.query(Cap).filter(Cap.index == cap_index).first()
     if not cap:
         raise HTTPException(status_code=404, detail="Cap not found")
@@ -494,71 +534,78 @@ def get_cap(cap_index: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
 @app.post("/api/caps")
 async def add_cap(payload: CapInput, db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
-        rgb = parse_color(payload)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    hsv = rgb_to_hsv(rgb)
-    color_name = classify_color(hsv)
-    color_hex = "#{:02x}{:02x}{:02x}".format(*rgb)
-    nickname = sanitize_nickname(payload.nickname)
-    user_id = sanitize_user_id(payload.user_id)
-    progress = db.query(func.count(Cap.id)).scalar() or 0
-    if progress >= TOTAL_PIXELS:
-        raise HTTPException(status_code=409, detail="Art already completed")
+        try:
+            rgb = parse_color(payload)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        hsv = rgb_to_hsv(rgb)
+        color_name = classify_color(hsv)
+        color_hex = "#{:02x}{:02x}{:02x}".format(*rgb)
+        nickname = sanitize_nickname(payload.nickname)
+        user_id = sanitize_user_id(payload.user_id)
+        progress = db.query(func.count(Cap.id)).scalar() or 0
+        if progress >= TOTAL_PIXELS:
+            raise HTTPException(status_code=409, detail="Art already completed")
 
-    index = progress + 1
-    x, y = index_to_xy(index)
-    cap = Cap(
-        index=index,
-        x=x,
-        y=y,
-        color_name=color_name,
-        color_label=COLOR_LABELS.get(color_name, color_name),
-        color_hex=color_hex,
-        color_palette=COLOR_PALETTE.get(color_name, color_hex),
-        nickname=nickname,
-        source=payload.source or "manual",
-        user_id=user_id,
-        checkin_token=payload.checkin_token,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(cap)
-    db.commit()
-    db.refresh(cap)
-
-    event = get_event(db)
-    if event and index >= event.total_pixels:
-        event.status = "completed"
-        event.completed_at = datetime.now(timezone.utc)
+        index = progress + 1
+        x, y = index_to_xy(index)
+        cap = Cap(
+            index=index,
+            x=x,
+            y=y,
+            color_name=color_name,
+            color_label=COLOR_LABELS.get(color_name, color_name),
+            color_hex=color_hex,
+            color_palette=COLOR_PALETTE.get(color_name, color_hex),
+            nickname=nickname,
+            source=payload.source or "manual",
+            user_id=user_id,
+            checkin_token=payload.checkin_token,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(cap)
         db.commit()
-        db.refresh(event)
+        db.refresh(cap)
 
-    leaderboard = build_leaderboard(db)
-    caps = db.query(Cap).order_by(Cap.index).all()
-    cap_items = [cap_to_dict(item) for item in caps]
-    color_stats = build_color_stats(cap_items)
+        event = get_event(db)
+        if event and index >= event.total_pixels:
+            event.status = "completed"
+            event.completed_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(event)
 
-    await manager.broadcast(
-        {
-            "type": "cap_added",
+        leaderboard = build_leaderboard(db)
+        caps = db.query(Cap).order_by(Cap.index).all()
+        cap_items = [cap_to_dict(item) for item in caps]
+        color_stats = build_color_stats(cap_items)
+
+        await manager.broadcast(
+            {
+                "type": "cap_added",
+                "cap": cap_to_dict(cap),
+                "progress": index,
+                "remaining": TOTAL_PIXELS - index,
+                "total": TOTAL_PIXELS,
+                "leaderboard": leaderboard,
+                "colorStats": color_stats,
+                "suggestions": suggest_theme(color_stats),
+                "event": event_to_dict(event) if event else None,
+            }
+        )
+        return {
             "cap": cap_to_dict(cap),
             "progress": index,
             "remaining": TOTAL_PIXELS - index,
             "total": TOTAL_PIXELS,
             "leaderboard": leaderboard,
             "colorStats": color_stats,
-            "suggestions": suggest_theme(color_stats),
-            "event": event_to_dict(event) if event else None,
         }
-    )
-    return {
-        "cap": cap_to_dict(cap),
-        "progress": index,
-        "remaining": TOTAL_PIXELS - index,
-        "total": TOTAL_PIXELS,
-        "leaderboard": leaderboard,
-        "colorStats": color_stats,
-    }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to add cap")
+        raise HTTPException(status_code=500, detail="Failed to register cap") from exc
 
 
 @app.get("/api/leaderboard")
@@ -589,17 +636,24 @@ def get_themes(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 @app.post("/api/themes/{theme_id}/vote")
 async def vote_theme(theme_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    theme = db.query(Theme).filter(Theme.id == theme_id).first()
-    if not theme:
-        raise HTTPException(status_code=404, detail="Theme not found")
-    theme.votes += 1
-    db.commit()
-    db.refresh(theme)
+    try:
+        theme = db.query(Theme).filter(Theme.id == theme_id).first()
+        if not theme:
+            raise HTTPException(status_code=404, detail="Theme not found")
+        theme.votes += 1
+        db.commit()
+        db.refresh(theme)
 
-    themes = db.query(Theme).order_by(Theme.id).all()
-    payload = {"themes": [theme_to_dict(item) for item in themes]}
-    await manager.broadcast({"type": "theme_voted", "themes": payload["themes"]})
-    return payload
+        themes = db.query(Theme).order_by(Theme.id).all()
+        payload = {"themes": [theme_to_dict(item) for item in themes]}
+        await manager.broadcast({"type": "theme_voted", "themes": payload["themes"]})
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to vote theme")
+        raise HTTPException(status_code=500, detail="Failed to vote theme") from exc
 
 
 @app.post("/api/checkins")
@@ -608,36 +662,48 @@ def create_checkin(
     request: Request,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    nickname = sanitize_nickname(payload.nickname)
-    user_id = sanitize_user_id(payload.user_id)
-    token = uuid.uuid4().hex
-    checkin = Checkin(
-        token=token,
-        nickname=nickname,
-        user_id=user_id,
-        source=payload.source or "qr",
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(checkin)
-    db.commit()
-    db.refresh(checkin)
-    return {
-        "token": token,
-        "url": f"{request.base_url}checkin/{token}",
-        "checkin": checkin_to_dict(checkin),
-    }
+    try:
+        nickname = sanitize_nickname(payload.nickname)
+        user_id = sanitize_user_id(payload.user_id)
+        token = uuid.uuid4().hex
+        checkin = Checkin(
+            token=token,
+            nickname=nickname,
+            user_id=user_id,
+            source=payload.source or "qr",
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(checkin)
+        db.commit()
+        db.refresh(checkin)
+        return {
+            "token": token,
+            "url": f"{request.base_url}?checkin={token}",
+            "checkin": checkin_to_dict(checkin),
+        }
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to create checkin")
+        raise HTTPException(status_code=500, detail="Failed to create checkin") from exc
 
 
 @app.post("/api/checkins/{token}/confirm")
 def confirm_checkin(token: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    checkin = db.query(Checkin).filter(Checkin.token == token).first()
-    if not checkin:
-        raise HTTPException(status_code=404, detail="Checkin not found")
-    if not checkin.used_at:
-        checkin.used_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(checkin)
-    return {"checkin": checkin_to_dict(checkin)}
+    try:
+        checkin = db.query(Checkin).filter(Checkin.token == token).first()
+        if not checkin:
+            raise HTTPException(status_code=404, detail="Checkin not found")
+        if not checkin.used_at:
+            checkin.used_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(checkin)
+        return {"checkin": checkin_to_dict(checkin)}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to confirm checkin")
+        raise HTTPException(status_code=500, detail="Failed to confirm checkin") from exc
 
 
 @app.post("/api/notifications")
@@ -645,19 +711,26 @@ def create_notification(
     payload: NotificationSubscriptionInput,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    channel = sanitize_channel(payload.channel)
-    contact = sanitize_contact(payload.contact)
-    user_id = sanitize_user_id(payload.user_id)
-    subscription = NotificationSubscription(
-        channel=channel,
-        contact=contact,
-        user_id=user_id,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(subscription)
-    db.commit()
-    db.refresh(subscription)
-    return {"subscription": subscription_to_dict(subscription)}
+    try:
+        channel = sanitize_channel(payload.channel)
+        contact = sanitize_contact(payload.contact)
+        user_id = sanitize_user_id(payload.user_id)
+        subscription = NotificationSubscription(
+            channel=channel,
+            contact=contact,
+            user_id=user_id,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(subscription)
+        db.commit()
+        db.refresh(subscription)
+        return {"subscription": subscription_to_dict(subscription)}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to create notification subscription")
+        raise HTTPException(status_code=500, detail="Failed to register notification") from exc
 
 
 @app.get("/api/users/{user_id}/summary")
@@ -747,24 +820,31 @@ async def admin_reset(
     db: Session = Depends(get_db),
     _: None = Depends(require_admin),
 ) -> Dict[str, Any]:
-    db.query(Cap).delete()
-    db.query(Checkin).delete()
-    if payload.clear_notifications:
-        db.query(NotificationSubscription).delete()
-    if payload.reset_themes:
-        for theme in db.query(Theme).all():
-            theme.votes = 0
-    event = get_event(db)
-    if event:
-        event.status = "active"
-        event.started_at = datetime.now(timezone.utc)
-        event.completed_at = None
-        event.total_pixels = TOTAL_PIXELS
-    db.commit()
+    try:
+        db.query(Cap).delete()
+        db.query(Checkin).delete()
+        if payload.clear_notifications:
+            db.query(NotificationSubscription).delete()
+        if payload.reset_themes:
+            for theme in db.query(Theme).all():
+                theme.votes = 0
+        event = get_event(db)
+        if event:
+            event.status = "active"
+            event.started_at = datetime.now(timezone.utc)
+            event.completed_at = None
+            event.total_pixels = TOTAL_PIXELS
+        db.commit()
 
-    snapshot = build_state_snapshot(db)
-    await manager.broadcast({"type": "state", "state": snapshot})
-    return snapshot
+        snapshot = build_state_snapshot(db)
+        await manager.broadcast({"type": "state", "state": snapshot})
+        return snapshot
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Failed to reset admin state")
+        raise HTTPException(status_code=500, detail="Failed to reset state") from exc
 
 
 @app.websocket("/ws")
@@ -777,6 +857,9 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:
+        logger.exception("WebSocket connection failed")
         manager.disconnect(websocket)
     finally:
         db.close()

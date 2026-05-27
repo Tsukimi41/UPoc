@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+.python-version
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+
+# Databases and runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+cap_art.db*
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+
+# Logs
+*.log
+logs/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / frontend tooling
+node_modules/
+dist/
+build/
+coverage/

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -26,7 +27,19 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 
+def ensure_sqlite_parent_directory() -> None:
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+    sqlite_path = DATABASE_URL.removeprefix("sqlite:///")
+    if sqlite_path in {":memory:", ""}:
+        return
+    path = Path(sqlite_path)
+    if path.parent and str(path.parent) != ".":
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+
 def init_db() -> None:
+    ensure_sqlite_parent_directory()
     Base.metadata.create_all(bind=engine)
 
 
