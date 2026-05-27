@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>キャップアート参加型デモ</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>キャップ投入で完成するドット絵アート</h1>
+          <p>
+            みんなのキャップが1ピクセルずつ加わり、大きなアートが完成します。投入のたびに
+            リアルタイムで更新される様子を体験してください。
+          </p>
+        </div>
+        <div class="badge">
+          <span>残り</span>
+          <strong id="remainingCount">1000</strong>
+          <span>本</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="art-panel">
+        <div class="canvas-wrapper">
+          <canvas id="artCanvas" width="640" height="400"></canvas>
+          <canvas id="overlayCanvas" width="640" height="400"></canvas>
+        </div>
+        <div class="progress">
+          <div>
+            <span class="label">進捗</span>
+            <span id="progressCount">0</span> / <span id="totalCount">1000</span>
+          </div>
+          <div>
+            <span class="label">最新投入</span>
+            <span id="latestMessage">まだ投入がありません</span>
+          </div>
+        </div>
+        <div class="color-stats" id="colorStats"></div>
+      </section>
+
+      <section class="side-panel">
+        <div class="panel">
+          <h2>キャップを投入</h2>
+          <div class="form-row">
+            <label for="nickname">ニックネーム</label>
+            <input id="nickname" type="text" placeholder="ゲスト" maxlength="20" />
+          </div>
+          <div class="form-row">
+            <label for="capColor">キャップ色</label>
+            <input id="capColor" type="color" value="#1e88e5" />
+          </div>
+          <button id="submitCap">投入する</button>
+          <p class="hint">
+            色を選ぶと擬似的に投入できます。実機ではカメラ検知がこの色入力に置き換わります。
+          </p>
+        </div>
+
+        <div class="panel">
+          <h2>ランキング</h2>
+          <ol id="leaderboard"></ol>
+        </div>
+
+        <div class="panel">
+          <h2>次アートのAI提案</h2>
+          <p id="suggestionSummary">分析中...</p>
+          <ul id="suggestionThemes"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>地域投票</h2>
+          <div id="themeVotes"></div>
+        </div>
+
+        <div class="panel">
+          <h2>個人貢献証明書</h2>
+          <div class="form-row">
+            <label for="capIndex">投入番号</label>
+            <input id="capIndex" type="number" min="1" max="1000" placeholder="例: 42" />
+          </div>
+          <button id="generateCertificate">証明書を生成</button>
+          <div class="certificate">
+            <img id="certificateImage" alt="証明書プレビュー" />
+            <a id="downloadCertificate" href="#" download="cap-certificate.png">画像を保存</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>調布駅前広場でのイベント展示デモを想定したMVPです。</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,274 @@
+:root {
+  color-scheme: light;
+  --primary: #1e88e5;
+  --bg: #f7f7f9;
+  --text: #1f1f1f;
+  --panel: #ffffff;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #ff9800;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 24px 32px;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+header h1 {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+header p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.badge {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.badge strong {
+  font-size: 32px;
+  line-height: 1;
+}
+
+main {
+  max-width: 1200px;
+  margin: 24px auto 40px;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+}
+
+.art-panel {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.canvas-wrapper {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+#artCanvas,
+#overlayCanvas {
+  display: block;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+
+#overlayCanvas {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.progress {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.progress .label {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.color-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f5f5;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.color-chip span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel h2 {
+  font-size: 18px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+input[type="text"],
+input[type="number"] {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+input[type="color"] {
+  border: none;
+  background: none;
+  width: 60px;
+  height: 40px;
+}
+
+button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1565c0;
+}
+
+button.secondary {
+  background: var(--accent);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+ol {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#themeVotes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theme-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.theme-card button {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.certificate {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#certificateImage {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  min-height: 120px;
+  object-fit: contain;
+}
+
+#downloadCertificate {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+footer {
+  text-align: center;
+  padding: 20px 0 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 960px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

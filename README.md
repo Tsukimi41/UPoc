@@ -90,3 +90,35 @@
 
 ## 狙える企業賞
 環境・SDGs系企業賞、調布市長賞、ハードウェア系大学賞（奨励賞・入賞）を想定。
+
+---
+
+## MVP デモ実装（FastAPI + Canvas）
+
+このリポジトリには、**キャップ投入 → ドット絵更新 → 個人証明書生成**までを体験できる
+簡易デモを実装しています。実機のカメラ検知は色入力に置き換えています。
+
+### できること
+- キャップ色を投入してドット絵をリアルタイム更新
+- 「あと◯本で完成」のカウントダウン表示
+- 投入番号から個人貢献証明書画像を生成
+- 投入色分布から AI 提案（簡易ロジック）を表示
+- 地域投票（テーマ投票）とランキング表示
+
+### 起動方法
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+ブラウザで `http://localhost:8000` を開くとデモ画面が表示されます。
+
+### ディレクトリ構成
+```
+app/main.py        # FastAPI バックエンド（WebSocket + API）
+static/index.html  # デモ UI
+static/app.js      # Canvas 描画・リアルタイム更新
+static/styles.css  # UI スタイル
+```
