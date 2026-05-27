@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UPoc Cap Art | Check-in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="checkin">
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-mark">UP</span>
+        <div>
+          <p class="logo-sub" id="eventTitle">UPoc 2026</p>
+          <h1>Cap Art Lab</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a class="nav-link" data-page="home" href="/">ホーム</a>
+        <a class="nav-link" data-page="live" href="/live">ライブ</a>
+        <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+        <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+      </nav>
+      <a class="primary" href="/live">ライブを見る</a>
+    </header>
+
+    <main class="page">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>QRチェックイン</h2>
+            <p class="muted">参加者の貢献をひも付けるための入口です。</p>
+          </div>
+          <div class="pill">会場導線</div>
+        </div>
+        <div class="checkin-grid">
+          <div class="checkin-block">
+            <h3>QRを発行（スタッフ）</h3>
+            <label for="checkinNickname">ニックネーム</label>
+            <input id="checkinNickname" type="text" placeholder="例: いちご" maxlength="20" />
+            <button class="secondary" id="generateCheckin">QRを生成</button>
+            <div class="qr-box">
+              <img id="checkinQr" alt="QRコード" />
+              <div class="qr-meta">
+                <span>トークン</span>
+                <strong id="checkinToken">未発行</strong>
+              </div>
+              <a id="checkinShareLink" href="#" target="_blank" rel="noreferrer">リンクを開く</a>
+              <button class="ghost" id="copyCheckinLink" type="button">リンクをコピー</button>
+            </div>
+          </div>
+          <div class="checkin-block">
+            <h3>参加者として開始</h3>
+            <label for="checkinTokenInput">トークン入力</label>
+            <input id="checkinTokenInput" type="text" placeholder="QRから取得したトークン" />
+            <button class="primary" id="confirmCheckin">チェックインする</button>
+            <p class="checkin-status" id="checkinStatus">
+              QRを読み取ったらここにトークンを入力してください。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card info-card">
+          <h3>参加バッジ</h3>
+          <p id="participantBadge" class="muted">まだ参加していません</p>
+        </article>
+        <article class="card info-card">
+          <h3>チェックイン中トークン</h3>
+          <p id="activeCheckinToken">未設定</p>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a class="nav-link" data-page="home" href="/">ホーム</a>
+      <a class="nav-link" data-page="live" href="/live">ライブ</a>
+      <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+      <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+    </nav>
+
+    <footer>
+      <p>QRチェックイン後にキャップ投入を行ってください。</p>
+    </footer>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

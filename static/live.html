@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UPoc Cap Art | Live</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="live">
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-mark">UP</span>
+        <div>
+          <p class="logo-sub" id="eventTitle">UPoc 2026</p>
+          <h1>Cap Art Lab</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a class="nav-link" data-page="home" href="/">ホーム</a>
+        <a class="nav-link" data-page="live" href="/live">ライブ</a>
+        <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+        <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+      </nav>
+      <a class="primary" href="/checkin">参加する</a>
+    </header>
+
+    <main class="page">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>ライブドット絵</h2>
+            <p class="muted">リアルタイムで更新されるキャンバスです。</p>
+          </div>
+          <div class="pill">更新中</div>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="artCanvas" width="640" height="400"></canvas>
+          <canvas id="overlayCanvas" width="640" height="400"></canvas>
+        </div>
+        <div class="color-stats" id="colorStats"></div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h3>進捗</h3>
+          <div class="progress-block">
+            <div class="progress-top">
+              <span>進捗</span>
+              <strong id="progressPercent">0%</strong>
+            </div>
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-meta">
+              <span><span id="progressCount">0</span> / <span id="totalCount">1000</span></span>
+              <span>残り <span id="remainingCount">1000</span> 本</span>
+            </div>
+          </div>
+          <p class="muted">最新: <span id="latestMessage">まだ投入がありません</span></p>
+        </article>
+        <article class="card">
+          <h3>キャップを投入</h3>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="nickname">ニックネーム</label>
+              <input id="nickname" type="text" placeholder="ゲスト" maxlength="20" />
+            </div>
+            <div class="form-row">
+              <label for="capColor">キャップ色</label>
+              <input id="capColor" type="color" value="#f0444a" />
+            </div>
+          </div>
+          <button class="primary" id="submitCap">投入する</button>
+          <p class="hint">チェックイン済みトークンがある場合は自動で紐づきます。</p>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <div class="card-header">
+            <h3>ランキング</h3>
+          </div>
+          <ol id="leaderboard" class="leaderboard-list"></ol>
+        </article>
+        <article class="card">
+          <div class="card-header">
+            <h3>AI 次アート提案</h3>
+          </div>
+          <p id="suggestionSummary" class="muted">分析中...</p>
+          <div class="palette" id="suggestionPalette"></div>
+          <ul id="suggestionThemes" class="theme-list"></ul>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a class="nav-link" data-page="home" href="/">ホーム</a>
+      <a class="nav-link" data-page="live" href="/live">ライブ</a>
+      <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+      <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+    </nav>
+
+    <footer>
+      <p>ライブページはリアルタイム表示に最適化されています。</p>
+    </footer>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

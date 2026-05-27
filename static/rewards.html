@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UPoc Cap Art | Rewards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="rewards">
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-mark">UP</span>
+        <div>
+          <p class="logo-sub" id="eventTitle">UPoc 2026</p>
+          <h1>Cap Art Lab</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a class="nav-link" data-page="home" href="/">ホーム</a>
+        <a class="nav-link" data-page="live" href="/live">ライブ</a>
+        <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+        <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+      </nav>
+      <a class="primary" href="/live">ライブを見る</a>
+    </header>
+
+    <main class="page">
+      <section class="grid">
+        <article class="card">
+          <h2>個人貢献証明書</h2>
+          <div class="form-row">
+            <label for="capIndex">投入番号</label>
+            <input id="capIndex" type="number" min="1" max="1000" placeholder="例: 42" />
+          </div>
+          <button class="secondary" id="generateCertificate">証明書を生成</button>
+          <div class="certificate">
+            <img id="certificateImage" alt="証明書プレビュー" />
+            <a id="downloadCertificate" href="#" download="cap-certificate.png">画像を保存</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-header">
+            <h3>ランキング</h3>
+          </div>
+          <ol id="leaderboard" class="leaderboard-list"></ol>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="card info-card">
+          <h3>参加バッジ</h3>
+          <ul class="badge-list">
+            <li>初参加バッジ</li>
+            <li>10本投入バッジ</li>
+            <li>50本投入バッジ</li>
+          </ul>
+        </article>
+        <article class="card info-card">
+          <h3>次のテーマ投票</h3>
+          <div id="themeVotes" class="theme-votes"></div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a class="nav-link" data-page="home" href="/">ホーム</a>
+      <a class="nav-link" data-page="live" href="/live">ライブ</a>
+      <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+      <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+    </nav>
+
+    <footer>
+      <p>投票と証明書で参加の記録を残しましょう。</p>
+    </footer>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

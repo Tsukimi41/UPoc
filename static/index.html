@@ -3,98 +3,145 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>キャップアート参加型デモ</title>
+    <title>UPoc Cap Art | Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
-  <body>
-    <header>
-      <div class="header-inner">
+  <body data-page="home">
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-mark">UP</span>
         <div>
-          <h1>キャップ投入で完成するドット絵アート</h1>
-          <p>
-            みんなのキャップが1ピクセルずつ加わり、大きなアートが完成します。投入のたびに
-            リアルタイムで更新される様子を体験してください。
-          </p>
-        </div>
-        <div class="badge">
-          <span>残り</span>
-          <strong id="remainingCount">1000</strong>
-          <span>本</span>
+          <p class="logo-sub" id="eventTitle">UPoc 2026</p>
+          <h1>Cap Art Lab</h1>
         </div>
       </div>
+      <nav class="main-nav">
+        <a class="nav-link" data-page="home" href="/">ホーム</a>
+        <a class="nav-link" data-page="live" href="/live">ライブ</a>
+        <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+        <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+      </nav>
+      <button class="primary" type="button">参加する</button>
     </header>
 
-    <main>
-      <section class="art-panel">
-        <div class="canvas-wrapper">
-          <canvas id="artCanvas" width="640" height="400"></canvas>
-          <canvas id="overlayCanvas" width="640" height="400"></canvas>
-        </div>
-        <div class="progress">
-          <div>
-            <span class="label">進捗</span>
-            <span id="progressCount">0</span> / <span id="totalCount">1000</span>
+    <main class="page">
+      <section class="hero card">
+        <div class="hero-copy">
+          <p class="eyebrow">リサイクル参加型アート</p>
+          <h2>キャップを入れるたび、街の色が増える。</h2>
+          <p class="muted">
+            1キャップ = 1ピクセル。投入のたびにアートが更新され、みんなの貢献がその場で可視化されます。
+          </p>
+          <div class="progress-block">
+            <div class="progress-top">
+              <span>進捗</span>
+              <strong id="progressPercent">0%</strong>
+            </div>
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-meta">
+              <span><span id="progressCount">0</span> / <span id="totalCount">1000</span></span>
+              <span>最新: <span id="latestMessage">まだ投入がありません</span></span>
+            </div>
           </div>
-          <div>
-            <span class="label">最新投入</span>
-            <span id="latestMessage">まだ投入がありません</span>
+          <div class="cta-group">
+            <a class="primary" href="/checkin">QRチェックイン</a>
+            <a class="ghost" href="/live">ライブを見る</a>
           </div>
         </div>
-        <div class="color-stats" id="colorStats"></div>
+        <div class="hero-side">
+          <div class="ticket">
+            <p class="ticket-label">残りキャップ</p>
+            <strong id="remainingCount">1000</strong>
+            <span class="ticket-note">あと少しで完成</span>
+          </div>
+          <div class="stat-stack">
+            <div class="stat-card">
+              <span>イベント</span>
+              <strong id="eventStatus">開催中</strong>
+            </div>
+            <div class="stat-card">
+              <span>参加バッジ</span>
+              <strong id="participantBadge">準備中</strong>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section class="side-panel">
-        <div class="panel">
-          <h2>キャップを投入</h2>
-          <div class="form-row">
-            <label for="nickname">ニックネーム</label>
-            <input id="nickname" type="text" placeholder="ゲスト" maxlength="20" />
-          </div>
-          <div class="form-row">
-            <label for="capColor">キャップ色</label>
-            <input id="capColor" type="color" value="#1e88e5" />
-          </div>
-          <button id="submitCap">投入する</button>
-          <p class="hint">
-            色を選ぶと擬似的に投入できます。実機ではカメラ検知がこの色入力に置き換わります。
-          </p>
-        </div>
-
-        <div class="panel">
-          <h2>ランキング</h2>
-          <ol id="leaderboard"></ol>
-        </div>
-
-        <div class="panel">
-          <h2>次アートのAI提案</h2>
-          <p id="suggestionSummary">分析中...</p>
-          <ul id="suggestionThemes"></ul>
-        </div>
-
-        <div class="panel">
-          <h2>地域投票</h2>
-          <div id="themeVotes"></div>
-        </div>
-
-        <div class="panel">
-          <h2>個人貢献証明書</h2>
-          <div class="form-row">
-            <label for="capIndex">投入番号</label>
-            <input id="capIndex" type="number" min="1" max="1000" placeholder="例: 42" />
-          </div>
-          <button id="generateCertificate">証明書を生成</button>
-          <div class="certificate">
-            <img id="certificateImage" alt="証明書プレビュー" />
-            <a id="downloadCertificate" href="#" download="cap-certificate.png">画像を保存</a>
+      <section class="card">
+        <div class="card-header">
+          <h3>ストーリーカルーセル</h3>
+          <div class="carousel-controls">
+            <button class="ghost" data-carousel-prev type="button">前へ</button>
+            <button class="ghost" data-carousel-next type="button">次へ</button>
           </div>
         </div>
+        <div class="carousel" data-carousel>
+          <div class="carousel-track">
+            <article class="carousel-card">
+              <p class="carousel-tag">今日のハイライト</p>
+              <h4>完成まであと300本</h4>
+              <p>放課後の参加が増えています。夕方の色が一気に増加中。</p>
+            </article>
+            <article class="carousel-card">
+              <p class="carousel-tag">リサイクル豆知識</p>
+              <h4>キャップ1000個でアート1枚</h4>
+              <p>みんなの1本が、街の風景をつくります。</p>
+            </article>
+            <article class="carousel-card">
+              <p class="carousel-tag">参加者メッセージ</p>
+              <h4>「また家族で来たい」</h4>
+              <p>ランキングと証明書で思い出が残ります。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card info-card">
+          <h3>参加の流れ</h3>
+          <ol class="step-list">
+            <li>QRチェックインを発行</li>
+            <li>キャップを投入</li>
+            <li>証明書をダウンロード</li>
+          </ol>
+        </article>
+        <article class="card info-card">
+          <h3>次のテーマ投票</h3>
+          <p class="muted">投票数に応じて次のドット絵を選びます。</p>
+          <div class="mini-theme">
+            <span>調布の水辺</span>
+            <span>鬼太郎と仲間たち</span>
+            <span>調布駅前の風景</span>
+          </div>
+        </article>
+        <article class="card info-card">
+          <h3>ライブ状況</h3>
+          <p class="muted">リアルタイムで更新されるアートを体感できます。</p>
+          <a class="text-link" href="/live">ライブページへ</a>
+        </article>
       </section>
     </main>
+
+    <nav class="bottom-nav">
+      <a class="nav-link" data-page="home" href="/">ホーム</a>
+      <a class="nav-link" data-page="live" href="/live">ライブ</a>
+      <a class="nav-link" data-page="checkin" href="/checkin">チェックイン</a>
+      <a class="nav-link" data-page="rewards" href="/rewards">リワード</a>
+    </nav>
 
     <footer>
       <p>調布駅前広場でのイベント展示デモを想定したMVPです。</p>
     </footer>
 
-    <script src="/static/app.js"></script>
+    <div id="toastContainer" class="toast-container"></div>
+    <script type="module" src="/static/app.js"></script>
   </body>
 </html>
