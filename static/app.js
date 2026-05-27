@@ -11,6 +11,7 @@ let caps = [];
 let capsByIndex = new Map();
 let animationQueue = [];
 let animating = false;
+let wsConnected = false;
 
 const remainingCount = document.getElementById('remainingCount');
 const progressCount = document.getElementById('progressCount');
@@ -205,7 +206,7 @@ async function submitCap() {
     return;
   }
   const data = await response.json();
-  if (!window.wsConnected) {
+  if (!wsConnected) {
     const cap = data.cap;
     caps.push(cap);
     capsByIndex.set(cap.index, cap);
@@ -217,7 +218,8 @@ async function submitCap() {
 }
 
 async function voteTheme(themeId) {
-  const response = await fetch(`/api/themes/${themeId}/vote`, { method: 'POST' });
+  const safeThemeId = encodeURIComponent(themeId);
+  const response = await fetch(`/api/themes/${safeThemeId}/vote`, { method: 'POST' });
   if (!response.ok) {
     return;
   }
@@ -268,7 +270,7 @@ function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const socket = new WebSocket(`${protocol}://${window.location.host}/ws`);
   socket.addEventListener('open', () => {
-    window.wsConnected = true;
+    wsConnected = true;
   });
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
@@ -291,7 +293,7 @@ function connectWebSocket() {
     }
   });
   socket.addEventListener('close', () => {
-    window.wsConnected = false;
+    wsConnected = false;
     setTimeout(connectWebSocket, 2000);
   });
 }

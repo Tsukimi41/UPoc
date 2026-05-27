@@ -170,7 +170,7 @@ def classify_color(hsv: List[float]) -> str:
         return "white"
     if s < 0.2:
         return "gray"
-    if h < 15 or h >= 345:
+    if h < 15 or h >= 350:
         return "red"
     if h < 35:
         return "orange"
@@ -184,7 +184,7 @@ def classify_color(hsv: List[float]) -> str:
         return "blue"
     if h < 290:
         return "purple"
-    if h < 330:
+    if h < 350:
         return "pink"
     return "red"
 
@@ -278,7 +278,8 @@ def suggest_theme(color_stats: List[Dict[str, Any]]) -> Dict[str, Any]:
 def sanitize_nickname(value: Optional[str]) -> str:
     if not value:
         return "ゲスト"
-    cleaned = "".join(char for char in value.strip() if char.isprintable())
+    blocked = {"<", ">", "&", "\"", "'"}
+    cleaned = "".join(char for char in value.strip() if char.isprintable() and char not in blocked)
     if not cleaned:
         return "ゲスト"
     return cleaned[:20]
